@@ -19,7 +19,7 @@ A simple, single-page web application to check the current weather conditions fo
 
 3. The app will display the current weather conditions for that city.
 
-**Important Note:** To make this code work, you will need to sign up for a free API key from OpenWeatherMap https://openweathermap.org/api and replace the placeholder `YOUR_API_KEY_HERE` with your actual key.
+**Important Note:** To make this code work, you will need to sign up for a free API key from [[OpenWeatherMap](https://openweathermap.org/api)] and replace the placeholder `YOUR_API_KEY_HERE` with your actual key.
 
 ---
 ## Technologies Used
