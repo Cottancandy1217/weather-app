@@ -3,210 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Now</title>
-    <!-- Use Tailwind CSS for a clean, modern, and responsive design -->
+    <title>Weather App</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f0f4f8;
         }
-        .icon {
-            width: 50px;
-            height: 50px;
+        .container {
+            background-color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
-        /* Style for forecast cards */
-        .forecast-card {
-            background-color: #fff;
-            padding: 1rem;
-            border-radius: 1rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            transition: transform 0.2s;
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 9999px;
+            color: white;
+            z-index: 1000;
+            transition: all 0.5s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
         }
-        .forecast-card:hover {
-            transform: translateY(-5px);
+        .message-box.show {
+            opacity: 1;
+            visibility: visible;
         }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white rounded-3xl shadow-xl p-8 max-w-2xl w-full transform transition-all duration-300 hover:scale-105">
-        <!-- Main title and search section -->
-        <h1 class="text-4xl font-bold text-center text-gray-800 mb-6">Weather Now ⛅</h1>
-        <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4 mb-8">
-            <input id="city-input" type="text" placeholder="Enter city name..." class="flex-grow p-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 transition-colors duration-200 text-gray-700">
-            <button id="search-btn" class="w-full sm:w-auto p-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors duration-200 shadow-md">Get Weather</button>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <!-- Message Box -->
+    <div id="message-box" class="message-box"></div>
+
+    <div class="container w-full max-w-sm mx-auto p-6 rounded-3xl text-center">
+        <h1 class="text-3xl font-bold mb-6 text-gray-800">Weather App</h1>
+        
+        <div class="flex items-center justify-center mb-4">
+            <input type="text" id="city-input" placeholder="Enter city name..." class="flex-grow p-3 rounded-l-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="search-btn" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-r-full transition duration-300 ease-in-out">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </button>
         </div>
 
-        <!-- Weather display section (initially hidden) -->
-        <div id="weather-display" class="hidden text-center">
-            <!-- Loading and error messages -->
-            <div id="loading-message" class="text-gray-500 hidden mb-4">Fetching weather data...</div>
-            <div id="error-message" class="text-red-500 font-medium hidden mb-4"></div>
-
-            <!-- Main weather info card -->
-            <div id="weather-card" class="bg-gradient-to-br from-blue-400 to-blue-600 text-white rounded-2xl p-6 shadow-lg transform transition-all duration-300 mb-8">
-                <h2 id="city-name" class="text-3xl font-bold mb-2"></h2>
-                <p id="weather-description" class="text-lg font-light mb-4 capitalize"></p>
-                <div class="flex items-center justify-center mb-6">
-                    <img id="weather-icon" src="" alt="Weather icon" class="w-20 h-20">
-                    <p id="temperature" class="text-6xl font-bold ml-4">--°C</p>
+        <div id="weather-card" class="hidden">
+            <h2 id="city-name" class="text-2xl font-semibold text-gray-800 mb-2"></h2>
+            <img id="weather-icon" src="" alt="Weather icon" class="mx-auto w-20 h-20 mb-2">
+            <p id="description" class="text-gray-600 capitalize mb-4"></p>
+            <p id="temperature" class="text-5xl font-extrabold text-blue-600 mb-2"></p>
+            <div class="grid grid-cols-3 gap-2 text-gray-600 mt-4">
+                <div>
+                    <p class="text-sm font-medium">Humidity</p>
+                    <p id="humidity" class="text-lg font-semibold"></p>
                 </div>
-                <div class="grid grid-cols-2 gap-4 text-left font-medium">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 13a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM9 7a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM9 10a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM10 18a1 1 0 100-2 1 1 0 000 2z"/></svg>
-                        <span>Humidity: <span id="humidity">--</span>%</span>
-                    </div>
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 13a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM9 7a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM9 10a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1zM10 18a1 1 0 100-2 1 1 0 000 2z"/></svg>
-                        <span>Wind: <span id="wind-speed">--</span> m/s</span>
-                    </div>
+                <div>
+                    <p class="text-sm font-medium">Wind</p>
+                    <p id="wind-speed" class="text-lg font-semibold"></p>
                 </div>
-            </div>
-
-            <!-- 5-Day Forecast section -->
-            <h3 class="text-2xl font-semibold text-gray-800 mb-4">5-Day Forecast</h3>
-            <div id="forecast-container" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-                <!-- Forecast cards will be dynamically inserted here -->
+                <div>
+                    <p class="text-sm font-medium">Feels Like</p>
+                    <p id="feels-like" class="text-lg font-semibold"></p>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const apiKey = 'YOUR_API_KEY_HERE'; // ⚠️ IMPORTANT: Replace with your actual OpenWeatherMap API key
-            const searchBtn = document.getElementById('search-btn');
-            const cityInput = document.getElementById('city-input');
-            const weatherDisplay = document.getElementById('weather-display');
-            const loadingMessage = document.getElementById('loading-message');
-            const errorMessage = document.getElementById('error-message');
-            const cityName = document.getElementById('city-name');
-            const weatherDescription = document.getElementById('weather-description');
-            const weatherIcon = document.getElementById('weather-icon');
-            const temperature = document.getElementById('temperature');
-            const humidity = document.getElementById('humidity');
-            const windSpeed = document.getElementById('wind-speed');
-            const forecastContainer = document.getElementById('forecast-container');
+        // Use your API key from OpenWeatherMap here. You will need to sign up for a free account to get one.
+        const API_KEY = "YOUR_API_KEY_HERE";
+        const cityInput = document.getElementById("city-input");
+        const searchBtn = document.getElementById("search-btn");
+        const weatherCard = document.getElementById("weather-card");
+        const cityName = document.getElementById("city-name");
+        const weatherIcon = document.getElementById("weather-icon");
+        const description = document.getElementById("description");
+        const temperature = document.getElementById("temperature");
+        const humidity = document.getElementById("humidity");
+        const windSpeed = document.getElementById("wind-speed");
+        const feelsLike = document.getElementById("feels-like");
+        const messageBox = document.getElementById("message-box");
 
-            // API calls will use this function to handle rate limiting and retries
-            const fetchWithRetry = async (url, options = {}, retries = 3, backoff = 1000) => {
-                for (let i = 0; i < retries; i++) {
-                    try {
-                        const response = await fetch(url, options);
-                        return response;
-                    } catch (error) {
-                        if (i < retries - 1) {
-                            await new Promise(resolve => setTimeout(resolve, backoff * (i + 1)));
-                            console.log(`Retrying fetch call... Attempt ${i + 2}`);
-                        } else {
-                            throw error;
-                        }
+        // Function to show a message box
+        function showMessage(message, type = 'error') {
+            messageBox.textContent = message;
+            messageBox.style.backgroundColor = type === 'success' ? '#10B981' : '#EF4444';
+            messageBox.classList.add('show');
+
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 3000);
+        }
+
+        // Function to fetch weather data
+        async function getWeatherData(city) {
+            if (!API_KEY || API_KEY === "YOUR_API_KEY_HERE") {
+                showMessage("Please get an API key from OpenWeatherMap and replace 'YOUR_API_KEY_HERE' in the code.", "error");
+                return;
+            }
+            const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        throw new Error('City not found. Please check the spelling.');
                     }
+                    throw new Error('Could not retrieve weather data.');
                 }
-            };
+                const data = await response.json();
+                displayWeather(data);
+            } catch (error) {
+                showMessage(error.message, "error");
+                weatherCard.classList.add("hidden");
+            }
+        }
 
-            const fetchWeatherAndForecast = async (city) => {
-                if (city.trim() === '') {
-                    showError('Please enter a city name.');
-                    return;
-                }
+        // Function to display weather data
+        function displayWeather(data) {
+            const { main, name, wind, weather } = data;
+            const tempCelsius = main.temp;
 
-                // Show loading state and hide previous info
-                weatherDisplay.classList.remove('hidden');
-                loadingMessage.classList.remove('hidden');
-                errorMessage.classList.add('hidden');
-                forecastContainer.innerHTML = ''; // Clear old forecast
+            cityName.textContent = name;
+            temperature.textContent = `${Math.round(tempCelsius)}°C`;
+            description.textContent = weather[0].description;
+            humidity.textContent = `${main.humidity}%`;
+            windSpeed.textContent = `${Math.round(wind.speed * 3.6)} km/h`; // Convert m/s to km/h
+            feelsLike.textContent = `${Math.round(main.feels_like)}°C`;
+            weatherIcon.src = `http://openweathermap.org/img/wn/${weather[0].icon}@2x.png`;
+            weatherCard.classList.remove("hidden");
+            showMessage("Weather data loaded successfully!", "success");
+        }
 
-                const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
-                const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=${apiKey}&units=metric`;
-
-                try {
-                    const weatherResponse = await fetchWithRetry(weatherUrl);
-                    const weatherData = await weatherResponse.json();
-
-                    if (weatherData.cod !== 200) {
-                        showError(weatherData.message || 'City not found. Please try again.');
-                        return;
-                    }
-
-                    // Populate the UI with current weather data
-                    cityName.textContent = weatherData.name;
-                    weatherDescription.textContent = weatherData.weather[0].description;
-                    weatherIcon.src = `http://openweathermap.org/img/wn/${weatherData.weather[0].icon}@2x.png`;
-                    temperature.textContent = `${Math.round(weatherData.main.temp)}°C`;
-                    humidity.textContent = weatherData.main.humidity;
-                    windSpeed.textContent = weatherData.wind.speed;
-
-                    // Now fetch the 5-day forecast
-                    const forecastResponse = await fetchWithRetry(forecastUrl);
-                    const forecastData = await forecastResponse.json();
-                    
-                    if (forecastData.cod !== '200') {
-                        showError(forecastData.message || 'Failed to fetch forecast data.');
-                        return;
-                    }
-
-                    displayForecast(forecastData);
-
-                    // Hide loading and show weather cards
-                    loadingMessage.classList.add('hidden');
-                    document.getElementById('weather-card').classList.remove('hidden');
-
-                } catch (error) {
-                    showError('Failed to fetch weather data. Please check your network connection.');
-                    console.error('Fetch error:', error);
-                }
-            };
-
-            const displayForecast = (data) => {
-                // Group forecast data by day
-                const dailyForecasts = {};
-                data.list.forEach(forecast => {
-                    const date = new Date(forecast.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-                    if (!dailyForecasts[date]) {
-                        dailyForecasts[date] = forecast;
-                    }
-                });
-
-                // Clear existing forecast
-                forecastContainer.innerHTML = '';
-
-                // Create and append forecast cards
-                Object.values(dailyForecasts).slice(0, 5).forEach(forecast => {
-                    const day = new Date(forecast.dt * 1000).toLocaleDateString('en-US', { weekday: 'short' });
-                    const temp = Math.round(forecast.main.temp);
-                    const icon = forecast.weather[0].icon;
-                    const description = forecast.weather[0].description;
-
-                    const card = document.createElement('div');
-                    card.classList.add('forecast-card', 'flex', 'flex-col', 'items-center', 'space-y-2');
-                    card.innerHTML = `
-                        <p class="font-semibold text-lg">${day}</p>
-                        <img src="http://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" class="icon">
-                        <p class="text-xl font-bold">${temp}°C</p>
-                    `;
-                    forecastContainer.appendChild(card);
-                });
-            };
-
-            const showError = (message) => {
-                loadingMessage.classList.add('hidden');
-                document.getElementById('weather-card').classList.add('hidden');
-                errorMessage.textContent = message;
-                errorMessage.classList.remove('hidden');
-            };
-
-            searchBtn.addEventListener('click', () => {
-                fetchWeatherAndForecast(cityInput.value);
-            });
-
-            cityInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    fetchWeatherAndForecast(cityInput.value);
-                }
-            });
+        // Event listeners for search
+        searchBtn.addEventListener("click", () => {
+            const city = cityInput.value.trim();
+            if (city) {
+                getWeatherData(city);
+            }
         });
+
+        cityInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                const city = cityInput.value.trim();
+                if (city) {
+                    getWeatherData(city);
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
